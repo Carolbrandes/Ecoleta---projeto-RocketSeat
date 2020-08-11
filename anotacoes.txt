@@ -1,0 +1,211 @@
+1) express - é um micro framework que vai lidar com rotas
+OBS: qd importamos uma biblioteca no ts, alem de definir o codigo da biblioteca, temos q definir a tipagem tb. Algumas biblioteca ja vem com tipagem e outras não. No caso do express ele fala para dar o comando: npm i @types/express -D
+
+2) Instalar o typescript npm i typescript -D
+
+3) Depois de instalar o typescript precisamos criar um arquivo de configuracao do ts q define quais features do typescript nos queremos utilizar e quais nao queremos. Entao para criarmos esse arquivo, vamos dar o comando: 'npx tsc --init'
+
+4) depois de inicializar o express, chamar a funcao get e a listen para executarmos nosso script,
+precisamos instalar o ts-node, pq o node só executa js.
+npm i ts-node -D
+
+5) vamos instalar o ts-node-dev -D para nao ter que ficar reiniciando o servidor.
+
+6) depois vamos usar o npx, que serve para executar um pacote que nós instalamos. Então para executar esse nosso script, vamos usar o comando: npx ts-node-dev src/server.ts
+
+7) no package.json e scripts vamos criar:
+"dev": "ts-node-dev src/server.ts"
+e ai para executar a aplicação usamos: npm run dev
+
+8) Agora vamos montar o frontend com react, usando o comando: 
+npx create-react-app frontend --template=typescript
+
+9) Dentro da pasta frontend que foi criada nossa app react, vamos dar o comando: npm start
+
+
+DESENVOLVIMENTO BACKEND:
+
+1) Rota = localhost:3333/users/  e o recurso = users (entidade que estamos acessando)
+
+2) HTTP:
+get -> buscar uma ou mais informações do BACKEND
+post -> criar uma nova informação no BACKEND
+put -> atualizar uma informacao existente no BACKEND
+delete -> remover uma informacao no BACKEND
+
+o browser so entende requisicoes do tipo get e entao para testarmos outros tipos de requisição vamos usar o https://insomnia.rest/
+
+
+Aula 2:
+
+import express, { response } from 'express';
+const app = express();
+// por padrao o express nao entende o formato json, entao temos fazer a chamada abaixo. 
+// o use serve para colocar um pluggin no express
+app.use(express.json());
+
+/* o 1º param é a rota e o 2º param é ação que vai ocorrer qd o usuario acessar essa rota*/
+// no 2º parametro que e a funcao que sera executada, recebemos tb 2 parametros. O request é utilizado para obter dados sob a nossa requisicao, ex: se tivessemos uma rota para cadastrar um usuario, dentro do request estariam os dados do usuario que precisa ser criado.
+// Já o response é para devolver uma resposta para nosso browser. Se quisermos devolver um texto simples, seria response.send("texto"), porém vamos sempre retornar um json, entao usamos response.json()
+// obS: é muito importante colocar o return para que a nossa aplicação pare quando estamos dando uma resposta para o browser, no caso da linha 10 e 19.
+const users = ['Diego', 'Cleiton', 'Robson', 'Daniel'];
+
+// aqui estamos buscando todos os usuários
+app.get('/users', (request, response) => {
+    console.log('Listagem de usuários');
+    return response.json(users);
+});
+
+
+// aqui vamos buscar um usuario especifico
+// o : quer dizer q estou recebendo um parametro q sera acessivel depois na requisicao
+// Request Params: Parametros que vem na propria rota que identifica um recurso, usado qd queremos ver a informações de um usuario especificio, atualizar ou deletar um usuario.
+app.get('/users/:id', (request, response) => {
+    const id = Number(request.params.id); 
+    const user = users[id];
+    return response.json(user);
+});
+
+
+// query params: parametros que vem na propria rota geralmente opcionais para filtros, paginacao.
+app.get('/users', (request, response) => {
+    const search = String(request.query.search);
+    const filteredUsers = search ?  users.filter(user => user.includes(search)) : users;
+    return response.json(filteredUsers);
+});
+
+
+
+// aqui estamos cadastrando um novo usuario
+// request body -> parametros para criacao/atualizacao de informacoes
+app.post('/users', (request, response) => {
+    // no data vai vim os dados que estao sendo cadastrados
+    const data = request.body;
+    console.log(data);
+    const user = {
+        name: data.name,
+        email: data.email
+    };
+    return response.json(user);
+});
+
+
+app.listen(3334); /* vamos botar a porta que ficará sendo escutada */
+
+
+------------------------------------------------------------------------------------------------
+
+Refatoramos o codigo, colocando a rotas em um arquivo e importando elas no server.js e vamos configurar o banco de dados.
+
+1º) instalar o knex para escrevermos as querys em js e ela vai servir para qlq banco de dados. Entao usamos o comando: npm i knex
+2º) vamos criar um arquivo para fazer a conexao com bd, e como vamos usar o sqlite vamos instalar o sqlite3. 
+npm i sqlite3
+3º) criamos as tabelas com migrations (historico, controle de versao do banco de dados), vamos ter migartions para criar tabelas, remover tabelas, editar tabelas;
+4) para executar as migrations na raiz do projeto server vamos criar o arquivo knexfile.ts
+5) no terminal vamos exe
+cutar o comando: npx knex migrate:latest --knexfile knexfile.ts migrate:lastest, como esse comando e muito grande vamos 
+gerar um script no arquivo package.json e ai usamos apenas o comando npm run knex:migrate
+6) instalamos o pluggin no vscode do sqlite e ai damos ctrl+shift+p escrevermos sqlite e escolhemos o arquivo, e na barra do lado esquerdo vai aparecer SQLITE EXPLORER
+7) vamos criar a pasta seeds para cadastrar os items e para executar (apos config no package.json do script) usamos o comando npm run knex:seed
+
+8) CORS: quais enderecos externos (web) vao ter acesso a nossa aplicação, entao vamos instalar o cors:  npm i cors
+
+
+
+
+-----------------------------------------------------------------------------------------------------------
+
+dia 3 - react
+
+1) CONCEITOS REACT: 
+
+import React, {useState} from 'react';
+import './App.css';
+import Header from './Header';
+
+function App() {
+  // vamos definir o counter como estado e ele vai iniciar com o valor 0
+  // imutabilidade - nao podemos mudar o valor de um estado de maneira direta (ex: na funcao handleButtonClick retornar counter++)
+  // o useState retorna um array [valor do estado, funcao para atualizar o valor do estado]
+  const [counter, setCounter] = useState(0);
+
+  function handleButtonClick(){
+    setCounter(counter + 1);
+  }
+
+  return (
+    <div>
+      <Header title="Hello Word" />
+      <h1>{counter}</h1>
+      <button type="button" onClick={handleButtonClick}>Aumentar</button>
+    </div>
+  );
+}
+
+export default App;
+
+2) Pacotes de icones no react, npm i react-icons (tem icones do fontawesome, material design, fether icons  e etc)
+
+3) Para a funcionalidade de apertar o botao e levar para a pagina de cadastro, vamos instalar o react-router-dom.
+npm i react-router-dom
+
+4) Para integrar o mapa: https://react-leaflet.js.org/
+    npm i leaflet react-leaflet
+
+5) para puxar os itens que nos cadastramos no nosso BACKEND, vamos instalar uma biblioteca: npm i axios
+
+6) Para preencher o select da pag de cadastro de pontos de coleta vamos usar a API do ibge: https://servicodados.ibge.gov.br/api/docs/localidades?versao=1
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+
+dia 4 - mobile
+
+1) instalar Expo CLI - executar comandos do expo no nosso terminal. Para instalar npm i -g expo-cli (na raiz da pasta = OMNISTACK)
+2) expo init mobile e escolhe a opcao blank(typescript)
+3) entrar na pasta mobile e dar npm start, ele vai abrir no navegador e no navegador em production mode temos que estar com a opção LAN selecionada.
+4) No celular baixar um app chamando expo
+5) Vamos no arquivo app.tsx
+
+
+* O metro Bundler fica verificando as alterações do código e enviar o cod js minificado.
+* Diferenças entre react e react native: No react native nao vamos usar tags html, vamos apenas usar as tags <View></View> e <Text></Text> que nao tem valor semantico. As estilizações não são feitas usando classes, ids... usamos a tag style={styles.container}, entao essa propriedade style esta disponivel em todos os elementos e recebe um objeto. A estilização é feita 
+via js e nao com o css. Quando vamos colocar o font-size colocamos o número e nao precisamos colocar o px. Por padrão os elementos já vem com o display flex.
+Não temos herança e nem cascata de estilos. Eu nao posso estilizar o o Text dentro da View. 
+
+*Caso de algum erro na app consultar em github.com/Rocketseat/expo-common-issues
+
+import { StatusBar } from 'expo-status-bar';
+import React from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+
+export default function App() {
+  return (
+    <View style={styles.container}>
+      <Text>Hello World!</Text>
+      <StatusBar style="auto" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
+
+* Para instalar google fonts no mobile com expo: expo i expo-font @expo-google-fonts/ubuntu @expo-google-fonts/roboto
+* 
+* instalar o react navigation (https://reactnavigation.org/docs/getting-started/)
+*instalar @react-navigation/stack
+
+*funcionalidade do email temos que instalar:  expo install expo-mail-composer
+
+
+
+
+
+

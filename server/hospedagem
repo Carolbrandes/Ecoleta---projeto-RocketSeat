@@ -1,0 +1,9 @@
+backend:
+Heroku (apenas para teste o plano gratuito)
+Digital Ocean (app pequenas)
+AWS / Google Cloude / Microsoft azure (grande apps)
+pesquisar node deploy
+
+frontend:
+Netlify / Vercel
+Amazon S3 / Google Cloud Storage
